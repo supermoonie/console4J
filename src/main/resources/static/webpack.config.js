@@ -3,14 +3,13 @@ const htmlWebpackPlugin = require('html-webpack-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 const ENTRY = {
-    home: './src/home/index.js',
-    index: './src/index/index.js'
+    index: './src/index.js'
 }
 
 const entryHtmlPlugins = Object.keys(ENTRY).map(entryName => {
     return new htmlWebpackPlugin({
-        template: `./src/${entryName}/index.html`,
-        filename: `${entryName}_index.html`,
+        template: `./public/index.html`,
+        filename: `index.html`,
         chunks: [entryName]
     });
 });

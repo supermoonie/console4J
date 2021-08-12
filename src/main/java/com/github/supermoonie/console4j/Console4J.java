@@ -75,7 +75,7 @@ public class Console4J extends JFrame {
         cefApp = JCefLoader.installAndLoadCef(settings);
         client = cefApp.createClient();
         String host = PropertiesUtil.getHost();
-        cefBrowser = client.createBrowser("https://baidu.com", false, false);
+        cefBrowser = client.createBrowser(host + "/index.html", false, false);
         client.addFocusHandler(new FocusHandler());
         client.addDisplayHandler(new DisplayHandler());
         Component uiComponent = cefBrowser.getUIComponent();
