@@ -52,7 +52,7 @@ public class FileSchemeHandler extends CefResourceHandlerAdapter {
                 String extension = request.getURL().substring(index + 1);
                 mimeType = MimeMappings.DEFAULT.get(extension);
             }
-            String path = URLDecoder.decode(url.replace("file://", ""), StandardCharsets.UTF_8);
+            String path = URLDecoder.decode(url.replace("file://", ""), StandardCharsets.UTF_8.toString());
             log.info("url: {}, path: {}", request.getURL(), path);
             File file = new File(path);
             data = FileUtils.readFileToByteArray(file);
