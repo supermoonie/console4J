@@ -1,6 +1,9 @@
 package com.github.supermoonie.console4j.router;
 
+import com.alibaba.fastjson.JSON;
 import com.github.supermoonie.console4j.Console4J;
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cef.browser.CefBrowser;
@@ -8,6 +11,11 @@ import org.cef.browser.CefFrame;
 import org.cef.browser.CefMessageRouter;
 import org.cef.callback.CefQueryCallback;
 import org.cef.handler.CefMessageRouterHandlerAdapter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author super_w
@@ -42,7 +50,7 @@ public class JvmRouter extends CefMessageRouterHandlerAdapter {
     public boolean onQuery(CefBrowser browser, CefFrame frame, long queryId, String request, boolean persistent, CefQueryCallback callback) {
         try {
             if (request.startsWith(GET_LOCAL_JVM)) {
-                onGetLocalJvm(request, callback);
+                onGetLocalJvm(callback);
             } else {
                 callback.failure(404, "no cmd found");
                 return false;
@@ -55,9 +63,18 @@ public class JvmRouter extends CefMessageRouterHandlerAdapter {
         }
     }
 
-    private void onGetLocalJvm(String request, CefQueryCallback callback) {
+    private void onGetLocalJvm(CefQueryCallback callback) {
         Console4J.getInstance().getExecutor().execute(() -> {
-
+            List<VirtualMachineDescriptor> vms = VirtualMachine.list();
+            List<Map<String, String>> result = new ArrayList<>();
+            for (VirtualMachineDescriptor vm : vms) {
+                String id = vm.id();
+                String name = vm.displayName();
+                Map<String, String> map = new HashMap<>();
+                map.put(id, name);
+                result.add(map);
+            }
+            callback.success(JSON.toJSONString(result));
         });
     }
 }

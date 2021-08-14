@@ -6,6 +6,8 @@ import com.formdev.flatlaf.extras.FlatSVGUtils;
 import com.github.supermoonie.console4j.handler.AppHandler;
 import com.github.supermoonie.console4j.handler.DisplayHandler;
 import com.github.supermoonie.console4j.handler.FocusHandler;
+import com.github.supermoonie.console4j.router.JvmRouter;
+import com.github.supermoonie.console4j.router.ThemeRouter;
 import com.github.supermoonie.console4j.ui.MenuBar;
 import com.github.supermoonie.console4j.utils.Folders;
 import com.github.supermoonie.console4j.utils.PropertiesUtil;
@@ -18,6 +20,7 @@ import org.cef.CefClient;
 import org.cef.CefSettings;
 import org.cef.JCefLoader;
 import org.cef.browser.CefBrowser;
+import org.cef.browser.CefMessageRouter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,6 +30,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.prefs.Preferences;
 
 /**
  * @author super_w
@@ -47,8 +51,10 @@ public class Console4J extends JFrame {
     private final CefBrowser cefBrowser;
     @Getter
     private final ScheduledExecutorService executor;
+    @Getter
+    private static Preferences preferences;
 
-    private Console4J(String[] args) throws Exception {
+    private Console4J(String[] args, Color bgColor) throws Exception {
         // init executor
         executor = new ScheduledThreadPoolExecutor(
                 10,
@@ -70,7 +76,7 @@ public class Console4J extends JFrame {
         new File(debugLogPath).deleteOnExit();
         settings.persist_session_cookies = true;
         settings.user_agent = USER_AGENT;
-        settings.background_color = settings.new ColorType(100, 255, 242, 211);
+        settings.background_color = settings.new ColorType(bgColor.getAlpha(), bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue());
         CefApp.addAppHandler(new AppHandler(args));
         cefApp = JCefLoader.installAndLoadCef(settings);
         client = cefApp.createClient();
@@ -84,6 +90,7 @@ public class Console4J extends JFrame {
             MenuBar menuBar = new MenuBar(this, cefBrowser);
             setJMenuBar(menuBar);
         }
+        addRouter();
         addWindowListener(new WindowAdapter() {
 
             @Override
@@ -102,6 +109,11 @@ public class Console4J extends JFrame {
         setVisible(true);
     }
 
+    private void addRouter() {
+        client.addMessageRouter(ThemeRouter.getInstance().getRouter());
+        client.addMessageRouter(JvmRouter.getInstance().getRouter());
+    }
+
     public static void main(String[] args) {
         try {
             java.awt.Toolkit.getDefaultToolkit();
@@ -111,10 +123,14 @@ public class Console4J extends JFrame {
                 System.setProperty("apple.laf.useScreenMenuBar", "true");
                 System.setProperty("apple.awt.UIElement", "true");
             }
+            preferences = Preferences.userRoot().node("/console4J");
+            String themeName = preferences.get("/theme", FlatDarkLaf.class.getName());
+            log.info("current theme: {}", themeName);
             FlatLightLaf.setup();
             FlatDarkLaf.setup();
-            UIManager.setLookAndFeel(FlatLightLaf.class.getName());
-            instance = new Console4J(args);
+            UIManager.setLookAndFeel(themeName);
+            Color bgColor = themeName.equals(FlatDarkLaf.class.getName()) ? new Color(100,48, 48, 48) : new Color(100, 250, 250, 250);
+            instance = new Console4J(args, bgColor);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             System.exit(0);
