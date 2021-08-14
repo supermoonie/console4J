@@ -71,7 +71,8 @@ public class JvmRouter extends CefMessageRouterHandlerAdapter {
                 String id = vm.id();
                 String name = vm.displayName();
                 Map<String, String> map = new HashMap<>();
-                map.put(id, name);
+                map.put("pid", id);
+                map.put("name", name);
                 result.add(map);
             }
             callback.success(JSON.toJSONString(result));
