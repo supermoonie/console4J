@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 /**
@@ -95,9 +96,15 @@ public class Console4J extends JFrame {
 
             @Override
             public void windowClosing(WindowEvent e) {
-                executor.shutdownNow();
                 client.dispose();
                 Console4J.this.dispose();
+                executor.shutdown();
+                try {
+                    executor.awaitTermination(5, TimeUnit.SECONDS);
+                } catch (InterruptedException ex) {
+                    log.error(ex.getMessage(), ex);
+                }
+                System.exit(0);
             }
         });
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
