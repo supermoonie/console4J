@@ -13,6 +13,7 @@ import AddIcon from '@material-ui/icons/Add';
 import EditIcon from '@material-ui/icons/Edit';
 import Theme from "@/lib/Theme";
 import NewConnection from "@/components/NewConnection";
+import Drawer from "@material-ui/core/Drawer";
 
 const styles = theme => ({
     speedDial: {
@@ -29,7 +30,8 @@ class App extends React.Component {
         this.state = {
             value: undefined,
             dark: true,
-            openSpeedDial: false
+            openSpeedDial: false,
+            showNewConnection: false
         }
     }
 
@@ -47,7 +49,13 @@ class App extends React.Component {
             <SnackbarProvider maxSnack={3}>
                 <CssBaseline/>
                 <Container maxWidth={"lg"}>
-                    <NewConnection/>
+                    <Drawer anchor="top" open={this.state.showNewConnection} onClose={() => {
+                        this.setState({
+                            showNewConnection: false
+                        })
+                    }}>
+                        <NewConnection/>
+                    </Drawer>
                     <SpeedDial
                         ariaLabel=""
                         className={classes.speedDial}
@@ -72,6 +80,7 @@ class App extends React.Component {
                             title={""}
                             onClick={() => {
                                 this.setState({
+                                    showNewConnection: true,
                                     openSpeedDial: false
                                 })
                             }}
