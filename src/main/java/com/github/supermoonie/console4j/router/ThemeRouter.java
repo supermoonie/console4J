@@ -27,7 +27,7 @@ public class ThemeRouter extends CefMessageRouterHandlerAdapter {
     private static final String SET_THEME = "SET_THEME:";
     private static final String GET_THEME = "GET_THEME";
 
-    private static final Map<String, String> THEME_MAP = new HashMap<>() {{
+    private static final Map<String, String> THEME_MAP = new HashMap<String, String>() {{
         put("dark", FlatDarkLaf.class.getName());
         put("light", FlatLightLaf.class.getName());
     }};
