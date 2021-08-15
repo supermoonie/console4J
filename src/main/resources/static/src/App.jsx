@@ -21,14 +21,20 @@ import TabPanel from "@/components/TabPanel";
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 
-echarts.registerTheme('dark', {
-    label: '#fafafa'
+echarts.registerTheme('custom-dark', {
+    legend: {
+        textStyle: {
+
+            color: 'rgba(255, 255, 255, 0.8)'
+        },
+        inactiveColor: 'rgba(255, 255, 255, 0.3)'
+    }
 });
 
 const styles = theme => ({
     speedDial: {
         position: 'absolute',
-        bottom: theme.spacing(8),
+        bottom: theme.spacing(5),
         right: theme.spacing(8),
     },
     container: {
@@ -56,23 +62,8 @@ class App extends React.Component {
                 tooltip : {
                     trigger: 'axis'
                 },
-                labelLine: {
-                    lineStyle: {
-                        color: 'rgba(255, 255, 255, 0.3)'
-                    }
-                },
-                label: {
-                    textStyle: {
-                        color: 'rgba(255, 255, 255, 0.3)'
-                    }
-                },
                 legend: {
                     data:['邮件营销','联盟广告','视频广告']
-                },
-                toolbox: {
-                    feature: {
-                        saveAsImage: {}
-                    }
                 },
                 grid: {
                     left: '3%',
@@ -148,6 +139,7 @@ class App extends React.Component {
                         <ReactECharts
                             option={this.state.testOption}
                             style={{ height: 400 }}
+                            theme={this.state.dark ? "custom-dark" : "light"}
                         />
                     </TabPanel>
                     <TabPanel value={this.state.activeTab} index={1}>
