@@ -4,7 +4,6 @@ import com.sun.management.HotSpotDiagnosticMXBean;
 import lombok.extern.slf4j.Slf4j;
 import sun.rmi.server.UnicastRef2;
 import sun.rmi.transport.LiveRef;
-import sun.tools.jconsole.LocalVirtualMachine;
 
 import javax.management.*;
 import javax.management.remote.JMXConnector;
@@ -123,7 +122,7 @@ public class ProxyClient implements ConsoleContext {
     private ProxyClient(LocalVirtualMachine lvm) throws IOException {
         this.lvm = lvm;
         this.connectionName = getConnectionName(lvm);
-        this.displayName = "pid: " + lvm.vmid() + " " + lvm.displayName();
+        this.displayName = "pid: " + lvm.vmId() + " " + lvm.displayName();
     }
 
     private void setParameters(JMXServiceURL url, String userName, String password) {
@@ -406,11 +405,11 @@ public class ProxyClient implements ConsoleContext {
     }
 
     public static String getConnectionName(LocalVirtualMachine lvm) {
-        return Integer.toString(lvm.vmid());
+        return Integer.toString(lvm.vmId());
     }
 
     private static String getCacheKey(LocalVirtualMachine lvm) {
-        return Integer.toString(lvm.vmid());
+        return Integer.toString(lvm.vmId());
     }
 
     /**
@@ -516,7 +515,7 @@ public class ProxyClient implements ConsoleContext {
     }
 
     public int getVmid() {
-        return (lvm != null) ? lvm.vmid() : 0;
+        return (lvm != null) ? lvm.vmId() : 0;
     }
 
     public String getUserName() {

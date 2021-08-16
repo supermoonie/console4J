@@ -5,7 +5,6 @@ import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import lombok.extern.slf4j.Slf4j;
 import sun.jvmstat.monitor.*;
-import sun.management.ConnectorAddressLink;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,15 +92,15 @@ public class LocalVirtualMachine {
 
     // This method returns the list of all virtual machines currently
     // running on the machine
-    public static Map<Integer, sun.tools.jconsole.LocalVirtualMachine> getAllVirtualMachines() {
-        Map<Integer, sun.tools.jconsole.LocalVirtualMachine> map =
-                new HashMap<Integer, sun.tools.jconsole.LocalVirtualMachine>();
+    public static Map<Integer, LocalVirtualMachine> getAllVirtualMachines() {
+        Map<Integer, LocalVirtualMachine> map =
+                new HashMap<Integer, LocalVirtualMachine>();
         getMonitoredVMs(map);
         getAttachableVMs(map);
         return map;
     }
 
-    private static void getMonitoredVMs(Map<Integer, sun.tools.jconsole.LocalVirtualMachine> map) {
+    private static void getMonitoredVMs(Map<Integer, LocalVirtualMachine> map) {
         MonitoredHost host;
         Set<Integer> vms;
         try {
@@ -110,10 +109,10 @@ public class LocalVirtualMachine {
         } catch (java.net.URISyntaxException | MonitorException x) {
             throw new InternalError(x.getMessage(), x);
         }
-        for (Object vmid: vms) {
-            if (vmid instanceof Integer) {
-                int pid = ((Integer) vmid).intValue();
-                String name = vmid.toString(); // default to pid if name not available
+        for (Integer vmId: vms) {
+            if (vmId != null) {
+                int pid = vmId;
+                String name = vmId.toString(); // default to pid if name not available
                 boolean attachable = false;
                 String address = null;
                 try {
@@ -121,13 +120,16 @@ public class LocalVirtualMachine {
                     // use the command line as the display name
                     name =  MonitoredVmUtil.commandLine(mvm);
                     attachable = MonitoredVmUtil.isAttachable(mvm);
-                    address = ConnectorAddressLink.importFrom(pid);
+
+                    VirtualMachine virtualMachine = VirtualMachine.attach(Integer.toString(pid));
+                    Properties properties = virtualMachine.getAgentProperties();
+                    address = (String) properties.get("com.sun.management.jmxremote.localConnectorAddress");
                     mvm.detach();
                 } catch (Exception x) {
                     // ignore
                 }
-                map.put((Integer) vmid,
-                        new sun.tools.jconsole.LocalVirtualMachine(pid, name, attachable, address));
+                map.put(vmId,
+                        new LocalVirtualMachine(pid, name, attachable, address));
             }
         }
     }
@@ -135,7 +137,7 @@ public class LocalVirtualMachine {
     private static final String LOCAL_CONNECTOR_ADDRESS_PROP =
             "com.sun.management.jmxremote.localConnectorAddress";
 
-    private static void getAttachableVMs(Map<Integer, sun.tools.jconsole.LocalVirtualMachine> map) {
+    private static void getAttachableVMs(Map<Integer, LocalVirtualMachine> map) {
         List<VirtualMachineDescriptor> vms = VirtualMachine.list();
         for (VirtualMachineDescriptor vmd : vms) {
             try {
@@ -154,7 +156,7 @@ public class LocalVirtualMachine {
                     } catch (IOException x) {
                         // ignore
                     }
-                    map.put(vmid, new sun.tools.jconsole.LocalVirtualMachine(vmid.intValue(),
+                    map.put(vmid, new LocalVirtualMachine(vmid,
                             vmd.displayName(),
                             attachable,
                             address));
@@ -165,9 +167,9 @@ public class LocalVirtualMachine {
         }
     }
 
-    public static sun.tools.jconsole.LocalVirtualMachine getLocalVirtualMachine(int vmid) {
-        Map<Integer, sun.tools.jconsole.LocalVirtualMachine> map = getAllVirtualMachines();
-        sun.tools.jconsole.LocalVirtualMachine lvm = map.get(vmid);
+    public static LocalVirtualMachine getLocalVirtualMachine(int vmid) {
+        Map<Integer, LocalVirtualMachine> map = getAllVirtualMachines();
+        LocalVirtualMachine lvm = map.get(vmid);
         if (lvm == null) {
             // Check if the VM is attachable but not included in the list
             // if it's running with a different security context.
@@ -183,7 +185,7 @@ public class LocalVirtualMachine {
                 Properties agentProps = vm.getAgentProperties();
                 address = (String) agentProps.get(LOCAL_CONNECTOR_ADDRESS_PROP);
                 vm.detach();
-                lvm = new sun.tools.jconsole.LocalVirtualMachine(vmid, name, attachable, address);
+                lvm = new LocalVirtualMachine(vmid, name, attachable, address);
             } catch (AttachNotSupportedException | IOException x) {
                 log.error(x.getMessage(), x);
             }
@@ -198,9 +200,7 @@ public class LocalVirtualMachine {
         try {
             vm = VirtualMachine.attach(name);
         } catch (AttachNotSupportedException x) {
-            IOException ioe = new IOException(x.getMessage());
-            ioe.initCause(x);
-            throw ioe;
+            throw new IOException(x.getMessage(), x);
         }
 
         vm.startLocalManagementAgent();
