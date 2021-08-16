@@ -7,6 +7,8 @@ import org.junit.Test;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.util.List;
 import java.util.Properties;
 
@@ -36,6 +38,8 @@ public class JvmRouterTest {
         String address = (String) properties.get("com.sun.management.jmxremote.localConnectorAddress");
         JMXServiceURL jmxServiceURL = new JMXServiceURL(address);
         JMXConnector jmxConnector = JMXConnectorFactory.connect(jmxServiceURL, null);
+        OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+
     }
 
 }
